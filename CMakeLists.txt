@@ -7,5 +7,5 @@ set (CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -ldl")
 
 find_package(SDL2 REQUIRED SDL2)
 find_package(OpenGL REQUIRED)
-add_executable(sdl2 main.cpp glad.c)
+add_executable(sdl2 main.cpp glad.c shader.h)
 target_link_libraries(sdl2 PRIVATE SDL2)
