@@ -10,6 +10,7 @@ const int WINDOW_W = 800;
 const int WINDOW_H = 600;
 
 
+
 int window_size_changed(void *userdata, SDL_Event *event);
 
 int main(int argc, char* argv[]) {
@@ -17,7 +18,7 @@ int main(int argc, char* argv[]) {
 
     // Create SDL window
     SDL_Window* window = SDL_CreateWindow(
-        "Hello ZORAN",
+        "Vvindous",
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
         WINDOW_W,
@@ -49,15 +50,18 @@ int main(int argc, char* argv[]) {
     float vertices[] = {
             -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
             -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-            0.0f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.5f, 0.0f,
             0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
             0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
     };
     unsigned int indices[] = {
             0, 1, 2,
-            2, 3, 4
+            0, 2, 3
     };
+    unsigned int VBO, VAO, EBO, texture0, texture1;
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+    stbi_set_flip_vertically_on_load(true);
     int img_w, img_h, num_channels;
     unsigned char *texture_data = stbi_load(
             "/home/wd-nikolad/projects/C/LearnOpenGL/spongbob.jpg",
@@ -66,8 +70,27 @@ int main(int argc, char* argv[]) {
             &num_channels,
             0
     );
+    glGenTextures(1, &texture0);
+    glBindTexture(GL_TEXTURE_2D, texture0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img_w, img_h, 0, GL_RGB, GL_UNSIGNED_BYTE, texture_data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    stbi_image_free(texture_data);
 
-    unsigned int VBO, VAO, EBO, texture;
+    texture_data = stbi_load(
+            "/home/wd-nikolad/projects/C/LearnOpenGL/fish.jpg",
+            &img_w,
+            &img_h,
+            &num_channels,
+            0
+    );
+    glGenTextures(1, &texture1);
+    glBindTexture(GL_TEXTURE_2D, texture1);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img_w, img_h, 0, GL_RGB, GL_UNSIGNED_BYTE, texture_data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    stbi_image_free(texture_data);
+
+
+
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glBindVertexArray(VAO);
@@ -86,11 +109,6 @@ int main(int argc, char* argv[]) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img_w, img_h, 0, GL_RGB, GL_UNSIGNED_BYTE, texture_data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-    stbi_image_free(texture_data);
 
     Shader shader(
            "/home/wd-nikolad/projects/C/LearnOpenGL/shader.vs",
@@ -99,14 +117,20 @@ int main(int argc, char* argv[]) {
 
     // draw loop
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    shader.use();
+    shader.setInt("my_texture0", 0);
+    shader.setInt("my_texture1", 1);
+
     bool quit {false};
     SDL_Event e;
     while (!quit) {
         glClearColor(1.0f, 1.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        shader.use();
-        glBindTexture(GL_TEXTURE_2D, texture);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture0);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, texture1);
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
