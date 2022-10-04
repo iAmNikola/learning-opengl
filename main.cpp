@@ -99,6 +99,7 @@ int main(int argc, char* argv[]) {
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
     // tell opengl how to interpret vertex data
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void*)0 /* where to start reading data */);
@@ -113,7 +114,14 @@ int main(int argc, char* argv[]) {
     glm::mat4 transform = glm::mat4(1.0f);
     transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
     transform = glm::rotate(transform, (float)SDL_GetTicks(), glm::vec3(0.0f,0.0f,1.0f));
-    transform = glm::scale(transform, glm::vec3 (2.0f, 0.8f, 1.4f));
+    transform = glm::scale(transform, glm::vec3 (1.5f, 1.5f, 1.5f));
+
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::rotate(model, glm::radians(-30.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::mat4 view = glm::mat4(1.0f);
+    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+    glm::mat4 projection;
+    projection = glm::perspective(glm::radians(80.0f), static_cast<float>(WINDOW_W) / static_cast<float>(WINDOW_H), 0.1f, 100.0f);
 
     Shader shader(
            "/home/wd-nikolad/projects/C/LearnOpenGL/shader.vs",
@@ -128,6 +136,12 @@ int main(int argc, char* argv[]) {
 
     unsigned int transform_location = glGetUniformLocation(shader.ID, "transform");
     glUniformMatrix4fv(transform_location, 1 , GL_FALSE, glm::value_ptr(transform));
+    unsigned int model_location = glGetUniformLocation(shader.ID, "model");
+    glUniformMatrix4fv(model_location, 1 , GL_FALSE, glm::value_ptr(model));
+    unsigned int view_location = glGetUniformLocation(shader.ID, "view");
+    glUniformMatrix4fv(view_location, 1 , GL_FALSE, glm::value_ptr(view));
+    unsigned int projection_location = glGetUniformLocation(shader.ID, "projection");
+    glUniformMatrix4fv(projection_location, 1 , GL_FALSE, glm::value_ptr(projection));
 
     bool quit {false};
     SDL_Event e;
