@@ -11,6 +11,6 @@ void main() {
     FragColor = mix(
         texture(my_texture0, vertex_texture),
         texture(my_texture1, vertex_texture),
-        0.6
+        0.3
     );
 }

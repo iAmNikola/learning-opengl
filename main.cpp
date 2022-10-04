@@ -1,6 +1,9 @@
 #include <iostream>
 #include <glad/glad.h>
 #include <SDL2/SDL.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "shader.h"
 #define STB_IMAGE_IMPLEMENTATION
@@ -89,8 +92,6 @@ int main(int argc, char* argv[]) {
     glGenerateMipmap(GL_TEXTURE_2D);
     stbi_image_free(texture_data);
 
-
-
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glBindVertexArray(VAO);
@@ -109,6 +110,10 @@ int main(int argc, char* argv[]) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
+    glm::mat4 transform = glm::mat4(1.0f);
+    transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
+    transform = glm::rotate(transform, (float)SDL_GetTicks(), glm::vec3(0.0f,0.0f,1.0f));
+    transform = glm::scale(transform, glm::vec3 (2.0f, 0.8f, 1.4f));
 
     Shader shader(
            "/home/wd-nikolad/projects/C/LearnOpenGL/shader.vs",
@@ -121,12 +126,17 @@ int main(int argc, char* argv[]) {
     shader.setInt("my_texture0", 0);
     shader.setInt("my_texture1", 1);
 
+    unsigned int transform_location = glGetUniformLocation(shader.ID, "transform");
+    glUniformMatrix4fv(transform_location, 1 , GL_FALSE, glm::value_ptr(transform));
+
     bool quit {false};
     SDL_Event e;
     while (!quit) {
         glClearColor(1.0f, 1.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        transform = glm::rotate(transform, (float)SDL_GetTicks(), glm::vec3(0.0f, 0.0f, 1.0f));
+        glUniformMatrix4fv(transform_location, 1 , GL_FALSE, glm::value_ptr(transform));
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture0);
         glActiveTexture(GL_TEXTURE1);
@@ -134,7 +144,6 @@ int main(int argc, char* argv[]) {
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
-
         SDL_GL_SwapWindow(window);
         while (SDL_PollEvent(&e) != 0)
         {
@@ -142,6 +151,7 @@ int main(int argc, char* argv[]) {
                 quit = true;
             }
         }
+        SDL_Delay(16);
     }
 
     SDL_DestroyWindow(window);
@@ -153,7 +163,7 @@ int window_size_changed(void *userdata, SDL_Event *event) {
     if (event->type == SDL_WINDOWEVENT && event->window.event == SDL_WINDOWEVENT_RESIZED) {
         auto* window = (SDL_Window*)userdata;
         int new_window_w, new_window_h;
-        SDL_GetWindowSize(window, &new_window_h, &new_window_w);
+        SDL_GetWindowSize(window, &new_window_w, &new_window_h);
         glViewport(0,0, new_window_w, new_window_h);
     }
     return 0;
